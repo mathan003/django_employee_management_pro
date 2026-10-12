@@ -138,7 +138,7 @@ def build_guide_pdf(filename="HOW_TO_RUN_PROJECT.pdf"):
         [
             Paragraph("<b>Host:</b> 0.0.0.0:8000 (Local & LAN Access)", table_cell_style),
             Paragraph("<b>Login Route:</b> /login/ (Strictly Preserved)", table_cell_style),
-            Paragraph("<b>Test Suite:</b> 31 Automated Tests (100% Pass)", table_cell_style)
+            Paragraph("<b>Test Suite:</b> 32 Automated Tests (100% Pass)", table_cell_style)
         ]
     ]
     meta_table = Table(meta_data, colWidths=[175, 175, 154])
@@ -155,7 +155,7 @@ def build_guide_pdf(filename="HOW_TO_RUN_PROJECT.pdf"):
     story.append(Paragraph("1. System Dashboards, Duty Punch Terminals & Security Protections", h1_style))
     story.append(Paragraph(
         "• <b>Netcom Employee Dashboard:</b> Hero banner with profile picture avatar, login popup announcement with close button, photo + GPS attendance punch (strict once-per-day enforcement with button lock), personal calendar (strictly isolated to employee's own records), 4-record scroll containers.<br/>"
-        "• <b>Netcom HR Dashboard:</b> Leave review modal (Paid vs Unpaid), daily work planning & staff notifications, comprehensive report downloads (PDF & Excel), HR self-service duty punch terminal, employee details with password toggle (👁️), document links (📄 View Doc), employee delete button, and 5-record scroll containers.<br/>"
+        "• <b>Netcom HR Dashboard:</b> Leave review modal (Casual vs Sick Leave), daily work planning & staff notifications, comprehensive report downloads (PDF & Excel), HR self-service duty punch terminal, employee details with password toggle (👁️), document links (📄 View Doc), employee delete button, and 5-record scroll containers.<br/>"
         "• <b>Netcom Admin Dashboard:</b> Administrator Duty Punch Terminal (webcam photo + GPS verification, real-time clock, instant punch in/out), full workforce governance, banner & popup image management, employee details with password reveal, submitted document inspection, biometric device sync, 10-record scroll containers.<br/>"
         "• <b>Permanent Protection for Main Admin (NETCOM):</b> The main admin user <code>NETCOM</code> and superusers can NEVER be deleted. Delete buttons are completely hidden on frontend, and backend blocks deletion with an error.<br/>"
         "• <b>Strict Access Enforcement:</b> HR users are completely blocked from accessing Admin pages (<code>/dashboard/admin/</code>) via backend <code>@admin_required</code>.",
@@ -185,10 +185,10 @@ def build_guide_pdf(filename="HOW_TO_RUN_PROJECT.pdf"):
             Paragraph("<b>Zero salary deduction.</b> Displayed with <b>GREEN border</b> on calendar & dashboard.", table_cell_bold)
         ],
         [
-            Paragraph("<b>Approved: Unpaid Leave</b>", table_cell_bold),
-            Paragraph("Unpaid Leave", table_cell_style),
-            Paragraph("No balance deduction", table_cell_bold),
-            Paragraph("<b>1.0 day salary deduction.</b> Displayed with <b>GREEN border</b> as approved leave.", table_cell_bold)
+            Paragraph("<b>Approved: Paid Sick Leave</b>", table_cell_bold),
+            Paragraph("Paid Sick Leave", table_cell_style),
+            Paragraph("<b>Zero casual deduction</b>", table_cell_bold),
+            Paragraph("<b>Zero salary deduction.</b> Displayed with <b>GREEN border</b> on calendar & dashboard.", table_cell_bold)
         ],
         [
             Paragraph("<b>Mark Paid Leave for Office</b>", table_cell_bold),

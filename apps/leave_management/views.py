@@ -77,44 +77,21 @@ def leave_list(request):
             leave.employee = profile
             leave.total_days = max(1, (leave.to_date - leave.from_date).days + 1)
 
-            # If employee does not have sufficient casual leave balance, allow request with reason
-            if leave.leave_type == 'Casual Leave' and profile.casual_leave_balance < leave.total_days:
-                leave.leave_type = 'Unpaid Leave'
-                leave.is_paid = False
-                leave.save()
+            leave.save()
 
-                HRNotification.objects.create(
-                    recipient_role='HR',
-                    title=f"Leave Request from {profile.display_name()} (Reason: {leave.reason[:30]})",
-                    message=(
-                        f"{profile.display_name()} ({profile.employee_code}) submitted leave request for {leave.total_days} day(s) "
-                        f"({leave.from_date} to {leave.to_date}) with reason: \"{leave.reason}\". "
-                        f"(Casual leave balance: {profile.casual_leave_balance} day(s); recorded for HR review)."
-                    ),
-                    leave_request=leave
-                )
-                messages.info(
-                    request,
-                    f"Leave application for {leave.total_days} day(s) submitted for approval based on reason: \"{leave.reason}\". "
-                    f"Casual leave balance is {profile.casual_leave_balance} day(s), submitted as Unpaid Leave for HR review."
-                )
-                return redirect('leave_management:list')
-            else:
-                leave.save()
+            # Automatically notify the HR department
+            HRNotification.objects.create(
+                recipient_role='HR',
+                title=f"New Leave Request from {profile.display_name()}",
+                message=(
+                    f"{profile.display_name()} ({profile.employee_code}) has submitted a {leave.leave_type} request "
+                    f"for {leave.total_days} day(s) from {leave.from_date} to {leave.to_date}. Reason: {leave.reason}"
+                ),
+                leave_request=leave
+            )
 
-                # Automatically notify the HR department
-                HRNotification.objects.create(
-                    recipient_role='HR',
-                    title=f"New Leave Request from {profile.display_name()}",
-                    message=(
-                        f"{profile.display_name()} ({profile.employee_code}) has submitted a {leave.leave_type} request "
-                        f"for {leave.total_days} day(s) from {leave.from_date} to {leave.to_date}. Reason: {leave.reason}"
-                    ),
-                    leave_request=leave
-                )
-
-                messages.success(request, f"Leave application for {leave.total_days} day(s) submitted for approval based on reason. The HR department has been notified.")
-                return redirect('leave_management:list')
+            messages.success(request, f"{leave.leave_type} application for {leave.total_days} day(s) submitted for approval. The HR department has been notified.")
+            return redirect('leave_management:list')
         else:
             for err_list in apply_form.errors.values():
                 for err in err_list:
@@ -150,40 +127,27 @@ def leave_status_update(request, pk, status=None):
 
     if status in ('Approved', 'Rejected'):
         if status == 'Approved':
-            # Check classification: Paid Casual Leave vs Unpaid Leave
-            if classification == 'Unpaid Leave' or leave.leave_type == 'Unpaid Leave':
+            # Check classification: Paid Sick Leave vs Paid Casual Leave
+            if classification == 'Paid Sick Leave' or leave.leave_type == 'Sick Leave':
+                leave.is_paid = True
+                leave.approval_type = 'Paid Sick Leave'
+                leave.leave_type = 'Sick Leave'
+                att_leave_type = 'Paid Sick Leave'
+            elif classification == 'Unpaid Leave':
+                # Legacy compatibility
                 leave.is_paid = False
                 leave.approval_type = 'Unpaid Leave'
                 leave.leave_type = 'Unpaid Leave'
                 att_leave_type = 'Unpaid Leave'
             else:
-                # Paid Casual Leave or Paid Leave
-                if classification == 'Paid Casual Leave' or leave.leave_type == 'Casual Leave':
-                    if old_status != 'Approved':
-                        if leave.employee.casual_leave_balance < leave.total_days:
-                            # Not enough casual leave balance: approve as Unpaid Leave smoothly based on reason
-                            leave.is_paid = False
-                            leave.approval_type = 'Unpaid Leave'
-                            leave.leave_type = 'Unpaid Leave'
-                            att_leave_type = 'Unpaid Leave'
-                            messages.info(
-                                request,
-                                f"{leave.employee.display_name()} has {leave.employee.casual_leave_balance} casual leave day(s). Approved based on reason as Unpaid Leave."
-                            )
-                        else:
-                            leave.employee.casual_leave_balance = max(0, leave.employee.casual_leave_balance - leave.total_days)
-                            leave.employee.save(update_fields=['casual_leave_balance'])
-                            leave.is_paid = True
-                            leave.approval_type = 'Paid Casual Leave'
-                            att_leave_type = 'Paid Casual Leave'
-                    else:
-                        leave.is_paid = True
-                        leave.approval_type = 'Paid Casual Leave'
-                        att_leave_type = 'Paid Casual Leave'
-                else:
-                    leave.is_paid = True
-                    leave.approval_type = classification
-                    att_leave_type = classification
+                # Paid Casual Leave
+                if old_status != 'Approved':
+                    leave.employee.casual_leave_balance = max(0, leave.employee.casual_leave_balance - leave.total_days)
+                    leave.employee.save(update_fields=['casual_leave_balance'])
+                leave.is_paid = True
+                leave.approval_type = 'Paid Casual Leave'
+                leave.leave_type = 'Casual Leave'
+                att_leave_type = 'Paid Casual Leave'
 
             leave.status = 'Approved'
             leave.reviewed_by = request.user

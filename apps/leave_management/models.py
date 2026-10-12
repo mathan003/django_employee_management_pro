@@ -6,8 +6,6 @@ class LeaveRequest(models.Model):
     LEAVE_TYPES = (
         ('Casual Leave', 'Casual Leave'),
         ('Sick Leave', 'Sick Leave'),
-        ('Annual Leave', 'Annual Leave'),
-        ('Unpaid Leave', 'Unpaid Leave'),
     )
 
     STATUS_CHOICES = (

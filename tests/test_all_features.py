@@ -402,34 +402,42 @@ class ComprehensiveSystemTests(TestCase):
         self.assertEqual(leave.approval_type, 'Paid Casual Leave')
         self.assertEqual(self.emp_profile.casual_leave_balance, bal_before - 1)
 
-        # 3. Employee applies for Unpaid Leave
+        # 3. Verify Leave categories are strictly Casual Leave and Sick Leave only
+        leave_types = [t[0] for t in LeaveRequest.LEAVE_TYPES]
+        self.assertEqual(leave_types, ['Casual Leave', 'Sick Leave'])
+        self.assertNotIn('Annual Leave', leave_types)
+        self.assertNotIn('Unpaid Leave', leave_types)
+
+        # Employee applies for Sick Leave
         self.client.logout()
         self.client.login(username='emp_user', password='emp12345')
-        unpaid_date = date(2026, 11, 12)
+        sick_date = date(2026, 11, 12)
         self.client.post('/leave/', {
-            'leave_type': 'Unpaid Leave',
-            'from_date': unpaid_date.strftime('%Y-%m-%d'),
-            'to_date': unpaid_date.strftime('%Y-%m-%d'),
-            'reason': 'Extended travel'
+            'leave_type': 'Sick Leave',
+            'from_date': sick_date.strftime('%Y-%m-%d'),
+            'to_date': sick_date.strftime('%Y-%m-%d'),
+            'reason': 'Medical recovery'
         })
-        unpaid_leave = LeaveRequest.objects.filter(employee=self.emp_profile, from_date=unpaid_date).first()
-        self.assertIsNotNone(unpaid_leave)
+        sick_leave = LeaveRequest.objects.filter(employee=self.emp_profile, from_date=sick_date).first()
+        self.assertIsNotNone(sick_leave)
+        self.assertEqual(sick_leave.leave_type, 'Sick Leave')
         self.client.logout()
 
-        # HR approves as Unpaid Leave -> balance NOT deducted
+        # HR approves as Paid Sick Leave -> casual balance NOT deducted
         self.client.login(username='hr_user', password='hr12345')
-        bal_before_unpaid = self.emp_profile.casual_leave_balance
-        self.client.post(f'/leave/{unpaid_leave.id}/review/', {
+        bal_before_sick = self.emp_profile.casual_leave_balance
+        self.client.post(f'/leave/{sick_leave.id}/review/', {
             'status': 'Approved',
-            'classification': 'Unpaid Leave'
+            'classification': 'Paid Sick Leave'
         })
-        unpaid_leave.refresh_from_db()
+        sick_leave.refresh_from_db()
         self.emp_profile.refresh_from_db()
-        self.assertEqual(unpaid_leave.status, 'Approved')
-        self.assertFalse(unpaid_leave.is_paid)
-        self.assertEqual(self.emp_profile.casual_leave_balance, bal_before_unpaid)
+        self.assertEqual(sick_leave.status, 'Approved')
+        self.assertTrue(sick_leave.is_paid)
+        self.assertEqual(sick_leave.approval_type, 'Paid Sick Leave')
+        self.assertEqual(self.emp_profile.casual_leave_balance, bal_before_sick)
 
-        # 4. Verify salary calculation: Paid Casual Leave has ZERO deduction, Unpaid Leave has daily deduction!
+        # 4. Verify salary calculation: Paid Casual Leave & Paid Sick Leave have ZERO salary deduction!
         SalaryStructure.objects.get_or_create(
             employee=self.emp_profile,
             defaults={
@@ -441,11 +449,11 @@ class ComprehensiveSystemTests(TestCase):
             }
         )
         calc = calculate_payroll_for_employee(self.emp_profile, 2026, 11)
-        # In Nov 2026 (30 days, 1000/day): 1 paid leave (0 deduction), 1 unpaid leave (1000 deduction)
-        self.assertEqual(calc['approved_leaves'], 1)
-        self.assertEqual(calc['unpaid_leaves'], 1)
-        self.assertEqual(calc['deductions'], Decimal('1000.00'))
-        self.assertEqual(calc['net_salary'], Decimal('29000.00'))
+        # 1 paid casual leave + 1 paid sick leave = 2 approved leaves with 0 salary deduction
+        self.assertEqual(calc['approved_leaves'], 2)
+        self.assertEqual(calc['unpaid_leaves'], 0)
+        self.assertEqual(calc['deductions'], Decimal('0.00'))
+        self.assertEqual(calc['net_salary'], Decimal('30000.00'))
 
     def test_rejected_leave_calendar_display_and_reason(self):
         self.client.login(username='emp_user', password='emp12345')
@@ -975,6 +983,18 @@ class ComprehensiveSystemTests(TestCase):
         self.assertNotContains(r, 'Employee Management Pro Portal')
         self.assertNotContains(r, 'Authorized Access Credentials:')
         self.assertNotContains(r, 'Netcom@2026@Netcom')
+
+    def test_removed_workspace_text_and_leave_categories(self):
+        self.client.login(username='emp_user', password='emp12345')
+        r = self.client.get('/dashboard/')
+        self.assertEqual(r.status_code, 200)
+        self.assertNotContains(r, 'Self-service workspace. Record attendance with live webcam')
+        # Check leave categories in form
+        self.assertContains(r, 'Casual Leave')
+        self.assertContains(r, 'Sick Leave')
+        self.assertNotContains(r, 'Annual Leave')
+        self.assertNotContains(r, 'Unpaid Leave')
+        self.client.logout()
 
 
 

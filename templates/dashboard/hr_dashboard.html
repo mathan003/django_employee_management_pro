@@ -112,23 +112,23 @@
 </div>
 {% endif %}
 
-<div class="grid-2">
+<div class="grid-2 grid-punch-calendar">
   <!-- HR Live Clock & Self-Service Punch -->
-  <div class="panel">
+  <div class="panel punch-panel">
     <div class="panel-header">
       <h3>HR Self-Service Punch Terminal</h3>
       <span class="badge badge-primary">Photo & GPS</span>
     </div>
-    <div class="panel-body">
+    <div class="panel-body punch-panel-body">
       <div class="punch-card-box">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85;">HR Duty Terminal</span>
+          <span style="font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85;">HR Duty Terminal</span>
           <div class="location-badge" id="hrGpsBadge">
             <span>📍</span> <span id="hrGpsText">Acquiring GPS...</span>
           </div>
         </div>
 
-        <div class="camera-preview-box" style="height: 140px; margin: 10px 0;">
+        <div class="camera-preview-box" style="height: 125px; margin: 6px 0 8px 0;">
           <video id="hrCameraVideo" autoplay playsinline muted></video>
           <div id="hrCameraFallback" style="display: none; position: absolute; color: #94a3b8; font-size: 12px; text-align: center;">
             📷 Camera optional - timestamp verification active.
@@ -136,30 +136,30 @@
         </div>
         <canvas id="hrCameraCanvas" width="320" height="240" style="display: none;"></canvas>
 
-        <form method="POST" action="{% url 'attendance:punch' %}" id="hrPunchForm" style="display: flex; gap: 12px;">
+        <form method="POST" action="{% url 'attendance:punch' %}" id="hrPunchForm" style="display: flex; gap: 10px;">
           {% csrf_token %}
           <input type="hidden" name="photo_data" id="hrPhotoData" value="">
           <input type="hidden" name="latitude" id="hrLatInput" value="">
           <input type="hidden" name="longitude" id="hrLonInput" value="">
           <input type="hidden" name="location" id="hrLocInput" value="">
 
-          <button type="button" onclick="executeHrPunch('punch_in')" class="btn btn-success" style="flex: 1; padding: 12px; font-size: 14px;" {% if hr_attendance.in_time %}disabled style="opacity:0.6; cursor:not-allowed;"{% endif %}>
+          <button type="button" onclick="executeHrPunch('punch_in')" class="btn btn-success" style="flex: 1; padding: 9px 12px; font-size: 13px;" {% if hr_attendance.in_time %}disabled style="opacity:0.6; cursor:not-allowed;"{% endif %}>
             🟢 HR Punch In
           </button>
-          <button type="button" onclick="executeHrPunch('punch_out')" class="btn btn-danger" style="flex: 1; padding: 12px; font-size: 14px;" {% if not hr_attendance.in_time or hr_attendance.out_time %}disabled style="opacity:0.6; cursor:not-allowed;"{% endif %}>
+          <button type="button" onclick="executeHrPunch('punch_out')" class="btn btn-danger" style="flex: 1; padding: 9px 12px; font-size: 13px;" {% if not hr_attendance.in_time or hr_attendance.out_time %}disabled style="opacity:0.6; cursor:not-allowed;"{% endif %}>
             🔴 HR Punch Out
           </button>
         </form>
 
-        <div style="margin-top: 10px; font-size: 12px; opacity: 0.85;">
+        <div style="margin-top: 8px; font-size: 12px; opacity: 0.85;">
           Today's Duration: <b>{{ hr_attendance.total_work_time }}</b> | Status: <b>{{ hr_attendance.status }}</b>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Interactive Attendance Calendar for HR -->
-  <div class="panel">
+  <!-- Interactive Attendance Calendar for HR (Height increased to match Punch Terminal) -->
+  <div class="panel calendar-panel">
     <div class="panel-header" style="justify-content: space-between; flex-wrap: wrap; gap: 8px;">
       <div style="display: flex; align-items: center; gap: 8px;">
         <h3>Attendance & Permission Calendar</h3>
@@ -179,7 +179,7 @@
         <a href="?calendar_emp={{ calendar_employee.id }}&year={{ next_year }}&month={{ next_month }}" class="btn btn-outline btn-sm">▶</a>
       </form>
     </div>
-    <div class="panel-body" style="padding: 14px;">
+    <div class="panel-body calendar-panel-body">
       <table class="calendar-widget">
         <thead>
           <tr>
@@ -197,7 +197,7 @@
         </tbody>
       </table>
 
-      <div style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 6px; flex-wrap: wrap;">
+      <div class="calendar-action-bar">
         <button type="button" onclick="openOfficePaidLeaveModal()" class="btn btn-primary btn-sm" style="background: #059669; border-color: #047857;">
           🏛️ Mark Paid Leave for the Office
         </button>
@@ -826,8 +826,6 @@
               <option value="Casual Leave">Casual Leave (Paid)</option>
               <option value="Sick Leave">Sick Leave (Paid)</option>
               <option value="Permission – 2 Hours">Permission – 2 Hours (No Salary Deduction)</option>
-              <option value="Annual Leave">Annual Leave (Paid)</option>
-              <option value="Unpaid Leave">Unpaid Leave</option>
             </select>
           </div>
           <div class="form-group">
@@ -1207,7 +1205,7 @@
     document.getElementById('revBalance').textContent = balance;
     document.getElementById('revReason').textContent = reason;
     document.getElementById('revStatusSelect').value = 'Approved';
-    document.getElementById('revClassificationSelect').value = (leaveType === 'Unpaid Leave') ? 'Unpaid Leave' : 'Paid Casual Leave';
+    document.getElementById('revClassificationSelect').value = (leaveType === 'Sick Leave') ? 'Paid Sick Leave' : 'Paid Casual Leave';
     onReviewStatusChange();
     document.getElementById('leaveReviewModal').classList.add('active');
   }
@@ -1282,12 +1280,10 @@
           <label class="form-label" style="font-weight: 600;">Leave Classification</label>
           <select name="classification" id="revClassificationSelect" class="form-select">
             <option value="Paid Casual Leave">Paid Casual Leave (Full Pay, Deducts Balance)</option>
-            <option value="Unpaid Leave">Unpaid Leave (No Balance Deduction, Daily Salary Deducted)</option>
             <option value="Paid Sick Leave">Paid Sick Leave (Full Pay)</option>
-            <option value="Paid Annual Leave">Paid Annual Leave (Full Pay)</option>
           </select>
           <small style="color: var(--gray-600); display: block; margin-top: 4px;">
-            Classifying as <b>Paid Casual Leave</b> pays full salary and updates leave balance. <b>Unpaid Leave</b> deducts salary automatically in payroll.
+            Classifying as <b>Paid Casual Leave</b> or <b>Paid Sick Leave</b> pays full salary with zero deduction.
           </small>
         </div>
 

@@ -162,12 +162,10 @@
           <label class="form-label" style="font-weight: 600;">Leave Classification</label>
           <select name="classification" id="revClassificationSelect" class="form-select">
             <option value="Paid Casual Leave">Paid Casual Leave (Full Pay, Deducts Balance)</option>
-            <option value="Unpaid Leave">Unpaid Leave (No Balance Deduction, Daily Salary Deducted)</option>
             <option value="Paid Sick Leave">Paid Sick Leave (Full Pay)</option>
-            <option value="Paid Annual Leave">Paid Annual Leave (Full Pay)</option>
           </select>
           <small style="color: var(--gray-600); display: block; margin-top: 4px;">
-            Classifying as <b>Paid Casual Leave</b> pays full salary and updates leave balance. <b>Unpaid Leave</b> deducts salary automatically in payroll.
+            Classifying as <b>Paid Casual Leave</b> or <b>Paid Sick Leave</b> pays full salary with zero deduction.
           </small>
         </div>
 
@@ -196,7 +194,7 @@
     document.getElementById('revBalance').textContent = balance;
     document.getElementById('revReason').textContent = reason;
     document.getElementById('revStatusSelect').value = 'Approved';
-    document.getElementById('revClassificationSelect').value = (leaveType === 'Unpaid Leave') ? 'Unpaid Leave' : 'Paid Casual Leave';
+    document.getElementById('revClassificationSelect').value = (leaveType === 'Sick Leave') ? 'Paid Sick Leave' : 'Paid Casual Leave';
     onReviewStatusChange();
     document.getElementById('leaveReviewModal').classList.add('active');
   }

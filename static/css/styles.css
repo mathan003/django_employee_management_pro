@@ -505,28 +505,37 @@ body {
 .alert-warning { background: var(--warning-light); color: var(--warning); border: 1px solid #fde68a; }
 .alert-info { background: var(--primary-light); color: var(--primary); border: 1px solid #bfdbfe; }
 
-/* Interactive Calendar */
+/* Interactive Calendar (Height Increased for balanced proportion) */
 .calendar-widget {
   width: 100%;
-  border-collapse: collapse;
+  height: 100%;
+  min-height: 310px;
+  border-collapse: separate;
+  border-spacing: 3px;
+  flex: 1;
 }
 
 .calendar-widget th {
-  padding: 10px;
+  padding: 9px 4px;
   background: var(--gray-100);
   font-size: 12px;
   font-weight: 700;
   color: var(--gray-600);
   text-align: center;
+  border-radius: 4px;
 }
 
 .calendar-widget td {
-  padding: 12px 6px;
+  height: 48px;
+  min-height: 48px;
+  padding: 8px 4px;
   text-align: center;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 14px;
+  vertical-align: middle;
   border: 1px solid var(--gray-200);
   border-radius: 6px;
+  box-sizing: border-box;
 }
 
 .calendar-widget .working-day {
@@ -552,26 +561,76 @@ body {
 .calendar-widget .empty-day {
   background: var(--gray-50);
   color: transparent;
+  border-color: transparent !important;
 }
 
-/* Punch Card */
+/* Punch Card (Decreased Size to match Calendar Height) */
 .punch-card-box {
   background: linear-gradient(135deg, #1e293b, #0f172a);
   color: #fff;
   border-radius: var(--radius);
-  padding: 24px;
+  padding: 16px 18px;
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  box-sizing: border-box;
 }
 
 .punch-timer-display {
-  font-size: 36px;
+  font-size: 26px;
   font-weight: 800;
   font-family: monospace;
   letter-spacing: 1px;
-  margin: 14px 0;
+  margin: 4px 0 6px 0;
   color: #38bdf8;
+  line-height: 1.1;
+}
+
+/* Symmetrical Punch Terminal & Calendar Grid */
+.grid-punch-calendar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.grid-punch-calendar .panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin-bottom: 24px;
+}
+
+.grid-punch-calendar .panel-header {
+  min-height: 54px;
+  padding: 12px 20px;
+  box-sizing: border-box;
+}
+
+.punch-panel-body {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.calendar-panel-body {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.calendar-action-bar {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 /* Authentication Page */
@@ -623,7 +682,7 @@ body {
   .toggle-sidebar-btn {
     display: inline-block;
   }
-  .grid-2 {
+  .grid-2, .grid-punch-calendar {
     grid-template-columns: 1fr;
   }
   .content-body {
@@ -767,7 +826,7 @@ body {
 /* Camera and Punch UI */
 .camera-preview-box {
   width: 100%;
-  height: 190px;
+  height: 125px;
   background: #0f172a;
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -775,8 +834,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 14px;
-  border: 2px dashed #334155;
+  margin: 6px 0 8px 0;
+  border: 1.5px dashed #334155;
+  box-sizing: border-box;
 }
 
 .camera-preview-box video {
